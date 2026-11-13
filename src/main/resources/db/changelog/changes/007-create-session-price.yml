@@ -1,0 +1,41 @@
+databaseChangeLog:
+  - changeSet:
+      id: 007-create-session-price
+      author: Mikhail404
+      changes:
+        - createTable:
+            tableName: session_price
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: pk_session_price
+              - column:
+                  name: session_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_session_price_movie_session
+                    references: movie_session(id)
+              - column:
+                  name: category
+                  type: VARCHAR(32)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: price
+                  type: NUMERIC(10,2)
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: session_price
+            columnNames: session_id, category
+            constraintName: uq_session_price_category
+        - sql:
+            sql: ALTER TABLE session_price ADD CONSTRAINT ck_session_price_positive CHECK (price >= 0)
+      rollback:
+        - dropTable:
+            tableName: session_price

@@ -1,0 +1,25 @@
+databaseChangeLog:
+  - include:
+      file: changes/001-extensions.yml
+      relativeToChangelogFile: true
+  - include:
+      file: changes/002-create-cinema.yml
+      relativeToChangelogFile: true
+  - include:
+      file: changes/003-create-hall.yml
+      relativeToChangelogFile: true
+  - include:
+      file: changes/004-create-movie.yml
+      relativeToChangelogFile: true
+  - include:
+      file: changes/005-create-seat.yml
+      relativeToChangelogFile: true
+  - include:
+      file: changes/006-create-session.yml
+      relativeToChangelogFile: true
+  - include:
+      file: changes/007-create-session-price.yml
+      relativeToChangelogFile: true
+  - include:
+      file: changes/900-seed-dev-data.yml
+      relativeToChangelogFile: true
