@@ -1,0 +1,136 @@
+databaseChangeLog:
+  - changeSet:
+      id: 900-seed-cinema-halls-movies
+      author: Mikhail404
+      context: dev
+      changes:
+        - insert:
+            tableName: cinema
+            columns:
+              - column:
+                  name: name
+                  value: Синема Центр
+              - column:
+                  name: address
+                  value: г. Москва, ул. Тверская, 1
+        - insert:
+            tableName: hall
+            columns:
+              - column:
+                  name: cinema_id
+                  valueComputed: (SELECT id FROM cinema WHERE name = 'Синема Центр')
+              - column:
+                  name: name
+                  value: Зал 1
+        - insert:
+            tableName: hall
+            columns:
+              - column:
+                  name: cinema_id
+                  valueComputed: (SELECT id FROM cinema WHERE name = 'Синема Центр')
+              - column:
+                  name: name
+                  value: VIP зал
+        - insert:
+            tableName: movie
+            columns:
+              - column:
+                  name: title
+                  value: Интерстеллар
+              - column:
+                  name: duration_minutes
+                  valueNumeric: 169
+        - insert:
+            tableName: movie
+            columns:
+              - column:
+                  name: title
+                  value: Начало
+              - column:
+                  name: duration_minutes
+                  valueNumeric: 148
+        - insert:
+            tableName: movie
+            columns:
+              - column:
+                  name: title
+                  value: Побег из Шоушенка
+              - column:
+                  name: duration_minutes
+                  valueNumeric: 142
+      rollback:
+        - sql:
+            sql: >
+              DELETE FROM hall WHERE cinema_id IN (SELECT id FROM cinema WHERE name = 'Синема Центр');
+              DELETE FROM cinema WHERE name = 'Синема Центр';
+              DELETE FROM movie WHERE title IN ('Интерстеллар', 'Начало', 'Побег из Шоушенка');
+
+  - changeSet:
+      id: 901-seed-seats
+      author: Mikhail404
+      context: dev
+      changes:
+        # Зал 1: 8 рядов по 10 мест, последний ряд - диваны
+        - sql:
+            sql: |
+              INSERT INTO seat (id, hall_id, category, row_number, seat_number)
+              SELECT nextval('seat_seq'), h.id,
+                     CASE WHEN r = 8 THEN 'SOFA' ELSE 'STANDARD' END,
+                     r, n
+              FROM hall h, generate_series(1, 8) AS r, generate_series(1, 10) AS n
+              WHERE h.name = 'Зал 1';
+        # VIP зал: 4 ряда по 6 мест, последний ряд - диваны
+        - sql:
+            sql: |
+              INSERT INTO seat (id, hall_id, category, row_number, seat_number)
+              SELECT nextval('seat_seq'), h.id,
+                     CASE WHEN r = 4 THEN 'SOFA' ELSE 'VIP' END,
+                     r, n
+              FROM hall h, generate_series(1, 4) AS r, generate_series(1, 6) AS n
+              WHERE h.name = 'VIP зал';
+      rollback:
+        - sql:
+            sql: DELETE FROM seat WHERE hall_id IN (SELECT id FROM hall WHERE name IN ('Зал 1', 'VIP зал'))
+
+  - changeSet:
+      id: 902-seed-sessions-and-prices
+      author: zaks
+      context: dev
+      changes:
+        # Сеансы на завтра
+        - sql:
+            sql: |
+              INSERT INTO movie_session (hall_id, movie_id, start_time, end_time, status)
+              SELECT h.id, m.id, t.start_time,
+                     t.start_time + m.duration_minutes * INTERVAL '1 minute',
+                     'SCHEDULED'
+              FROM (VALUES
+                  ('Зал 1',   'Интерстеллар',      date_trunc('day', now()) + INTERVAL '1 day 10 hours'),
+                  ('Зал 1',   'Начало',            date_trunc('day', now()) + INTERVAL '1 day 14 hours'),
+                  ('Зал 1',   'Интерстеллар',      date_trunc('day', now()) + INTERVAL '1 day 18 hours'),
+                  ('VIP зал', 'Побег из Шоушенка', date_trunc('day', now()) + INTERVAL '1 day 12 hours'),
+                  ('VIP зал', 'Начало',            date_trunc('day', now()) + INTERVAL '1 day 17 hours')
+              ) AS t(hall_name, title, start_time)
+              JOIN hall h ON h.name = t.hall_name
+              JOIN movie m ON m.title = t.title;
+        # Цены для Зала 1
+        - sql:
+            sql: |
+              INSERT INTO session_price (session_id, category, price)
+              SELECT s.id, p.category, p.price
+              FROM movie_session s
+              JOIN hall h ON h.id = s.hall_id AND h.name = 'Зал 1'
+              CROSS JOIN (VALUES ('STANDARD', 500), ('SOFA', 800)) AS p(category, price);
+        # Цены для VIP зала
+        - sql:
+            sql: |
+              INSERT INTO session_price (session_id, category, price)
+              SELECT s.id, p.category, p.price
+              FROM movie_session s
+              JOIN hall h ON h.id = s.hall_id AND h.name = 'VIP зал'
+              CROSS JOIN (VALUES ('VIP', 900), ('SOFA', 1200)) AS p(category, price);
+      rollback:
+        - sql:
+            sql: |
+              DELETE FROM session_price;
+              DELETE FROM movie_session;

@@ -1,0 +1,44 @@
+databaseChangeLog:
+  - changeSet:
+      id: 005-create-seat
+      author: Mikhail404
+      changes:
+        - createSequence:
+            sequenceName: seat_seq
+            startValue: 1
+            incrementBy: 100
+        - createTable:
+            tableName: seat
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: pk_seat
+              - column:
+                  name: hall_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_seat_hall
+                    references: hall(id)
+              - column:
+                  name: category
+                  type: VARCHAR(32)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: row_number
+                  type: INTEGER
+                  constraints:
+                    nullable: false
+              - column:
+                  name: seat_number
+                  type: INTEGER
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: seat
+            columnNames: hall_id, row_number, seat_number
+            constraintName: uq_seat_position

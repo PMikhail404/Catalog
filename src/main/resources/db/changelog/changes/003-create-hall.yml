@@ -1,0 +1,31 @@
+databaseChangeLog:
+  - changeSet:
+      id: 003-create-hall
+      author: Mikhail404
+      changes:
+        - createTable:
+            tableName: hall
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: pk_hall
+              - column:
+                  name: cinema_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_hall_cinema
+                    references: cinema(id)
+              - column:
+                  name: name
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: hall
+            columnNames: cinema_id, name
+            constraintName: uq_hall_cinema_name

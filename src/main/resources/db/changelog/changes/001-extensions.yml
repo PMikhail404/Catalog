@@ -1,0 +1,10 @@
+databaseChangeLog:
+  - changeSet:
+      id: 001-btree-gist-extension
+      author: Mikhail404
+      changes:
+        - sql:
+            sql: CREATE EXTENSION IF NOT EXISTS btree_gist
+      rollback:
+        - sql:
+            sql: DROP EXTENSION IF EXISTS btree_gist
