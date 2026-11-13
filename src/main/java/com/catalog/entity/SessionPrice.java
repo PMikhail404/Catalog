@@ -1,6 +1,6 @@
-package com.packet.entity;
+package com.catalog.entity;
 
-import com.packet.enums.SeatCategory;
+import com.catalog.enums.SeatCategory;
 import jakarta.persistence.*;
 import lombok.*;
 

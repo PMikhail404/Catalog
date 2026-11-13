@@ -1,4 +1,4 @@
-package com.packet.enums;
+package com.catalog.enums;
 
 /**
  * Категория места

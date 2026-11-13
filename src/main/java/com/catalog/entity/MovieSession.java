@@ -1,6 +1,6 @@
-package com.packet.entity;
+package com.catalog.entity;
 
-import com.packet.enums.SessionStatus;
+import com.catalog.enums.SessionStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
